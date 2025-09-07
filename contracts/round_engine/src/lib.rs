@@ -27,7 +27,7 @@ pub enum RoundStatus {
 #[contracttype]
 pub struct Round {
     pub creator: Address,
-    pub pair: String,
+    pub asset: String,
     pub lock_ts: u64,
     pub settle_ts: u64,
     pub status: RoundStatus,
@@ -110,7 +110,7 @@ impl RoundEngine {
 
     /// Create a round that opens immediately; players can join until `lock_secs` elapses.
     /// After lock, a bot/user calls `lock(id)` to snapshot the price; later `settle(id)` finalizes.
-    pub fn create_round(env: Env, creator: Address, pair: String, lock_secs: u64, duration_secs: u64) -> u64 {
+    pub fn create_round(env: Env, creator: Address, asset: String, lock_secs: u64, duration_secs: u64) -> u64 {
         let now = env.ledger().timestamp();
         if lock_secs == 0 || duration_secs == 0 { Env::panic_with_error(&env, Err::InvalidTimes); }
         let lock_ts = now.saturating_add(lock_secs);
@@ -121,7 +121,7 @@ impl RoundEngine {
 
         let r = Round {
             creator,
-            pair,
+            asset,
             lock_ts,
             settle_ts,
             status: RoundStatus::Created,
@@ -160,7 +160,7 @@ impl RoundEngine {
         if now < r.lock_ts { Env::panic_with_error(&env, Err::BadState); }
         let oracle = read_oracle(&env);
         // (price, decimals, ts)
-        let (p, d, _ts): (i128, u32, u64) = env.invoke_contract(&oracle, &symbol_short!("get_spot"), vec![&env, r.pair.clone().into_val(&env), Option::<u64>::None.into_val(&env)]);
+        let (p,d,_): (i128,u32,u64) = env.invoke_contract(&oracle, &symbol_short!("get_spot"), vec![&env, r.asset.clone().into_val(&env), Option::<u64>::None.into_val(&env)]);
         r.lock_price = Some(p);
         r.lock_decimals = d;
         r.status = RoundStatus::Locked;

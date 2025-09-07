@@ -60,8 +60,8 @@ fn setup_plain() -> (Env, RoundEngineClient<'static>, Address, Address) {
 fn init_and_set_oracle_ok() {
     let (env, client, _admin, creator, _oracle) = setup_auth();
     // create one round quickly just to assert a happy path
-    let pair = String::from_str(&env, "btc/usdc");
-    let id = client.create_round(&creator, &pair, &5u64, &5u64);
+    let asset = String::from_str(&env, "BTC");
+    let id = client.create_round(&creator, &asset, &5u64, &5u64);
     // NOTE: the signature in lib is (creator, pair, lock_secs, duration_secs); adjust if needed:
     // let id = client.create_round(&creator, &pair, &5u64, &5u64);
     // (If you changed the signature earlier, keep that version.)
